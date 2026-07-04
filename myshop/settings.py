@@ -145,22 +145,34 @@ TEMPLATES = [
 WSGI_APPLICATION = 'myshop.wsgi.application'
 
 # ================================================================
-# DATABASE - پشتیبانی از PostgreSQL در Railway و SQLite در لوکال
+# DATABASE - تنظیمات PostgreSQL برای Railway
 # ================================================================
-if os.environ.get('DATABASE_URL'):
-    # Railway به‌طور خودکار DATABASE_URL را تنظیم می‌کند
+import dj_database_url
+
+if 'DATABASE_URL' in os.environ:
+    # دریافت DATABASE_URL از محیط
+    database_url = os.environ['DATABASE_URL']
+    
+    # تبدیل به تنظیمات Django
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
+            default=database_url,
             conn_max_age=600,
             conn_health_checks=True,
+            ssl_require=True  # مهم برای Railway
         )
     }
-    # تنظیمات مخصوص PostgreSQL
+    
+    # اطمینان از استفاده از ENGINE صحیح
+    DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'
+    
+    # تنظیمات اضافی برای پایداری
     DATABASES['default']['OPTIONS'] = {
         'connect_timeout': 10,
         'options': '-c statement_timeout=30000ms',
     }
+    
+    print(f"✅ Connected to PostgreSQL database at: {DATABASES['default']['HOST']}")
 else:
     # Fallback به SQLite برای توسعه محلی
     DATABASES = {
@@ -169,6 +181,7 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    print("ℹ️ Using SQLite (local development)")
 
 # ================================================================
 # AUTH PASSWORD VALIDATORS
