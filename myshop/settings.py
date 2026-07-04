@@ -50,7 +50,7 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@minewarts.co
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
 # ================================================================
-# ALLOWED_HOSTS
+# ALLOWED_HOSTS - تنظیمات کامل برای Railway
 # ================================================================
 if DEBUG:
     ALLOWED_HOSTS = ['*']
@@ -59,7 +59,13 @@ else:
     if allowed_hosts:
         ALLOWED_HOSTS = [h.strip() for h in allowed_hosts.split(',') if h.strip()]
     else:
-        ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+        # ✅ دامنه‌های مجاز برای Railway
+        ALLOWED_HOSTS = [
+            '127.0.0.1',
+            'localhost',
+            'minewarts2-production.up.railway.app',
+            '.railway.app',  # اجازه همه subdomain های railway
+        ]
 
 # ================================================================
 # APPS
@@ -147,8 +153,6 @@ WSGI_APPLICATION = 'myshop.wsgi.application'
 # ================================================================
 # DATABASE - تنظیمات PostgreSQL برای Railway
 # ================================================================
-import dj_database_url
-
 if 'DATABASE_URL' in os.environ:
     # دریافت DATABASE_URL از محیط
     database_url = os.environ['DATABASE_URL']
@@ -228,7 +232,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # ================================================================
-# CSRF
+# CSRF - تنظیمات کامل برای Railway
 # ================================================================
 CSRF_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 هفته
 CSRF_COOKIE_HTTPONLY = True
@@ -238,7 +242,17 @@ CSRF_COOKIE_NAME = 'csrftoken_secure'
 CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
 CSRF_USE_SESSIONS = True
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
-CSRF_TRUSTED_ORIGINS = []
+
+# ✅ لیست دامنه‌های مجاز برای CSRF - مهم برای Railway
+CSRF_TRUSTED_ORIGINS = [
+    'https://minewarts2-production.up.railway.app',
+    'http://minewarts2-production.up.railway.app',
+]
+
+# اضافه کردن دامنه از متغیر محیطی (برای انعطاف‌پذیری بیشتر)
+if os.environ.get('CSRF_TRUSTED_ORIGINS'):
+    extra_origins = os.environ.get('CSRF_TRUSTED_ORIGINS').split(',')
+    CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in extra_origins if origin.strip()])
 
 # ================================================================
 # SECURITY
@@ -309,7 +323,7 @@ CART_SESSION_ID = 'cart'
 # ================================================================
 
 # ✅ مرچنت آیدی صحیح برای سندباکس
-ZARINPAL_MERCHANT_ID = "00000000-0000-0000-0000-000000000000"  # ← این مقدار صحیح است
+ZARINPAL_MERCHANT_ID = "00000000-0000-0000-0000-000000000000"
 # یا از محیط بخوانید:
 # ZARINPAL_MERCHANT_ID = os.environ.get('ZARINPAL_MERCHANT_ID', '00000000-0000-0000-0000-000000000000')
 
@@ -352,7 +366,8 @@ CSP_API_DOMAINS = [
 
 CSP_WEBSOCKET_DOMAINS = []
 
-CSP_UNSAFE_INLINE = DEBUG
+# ✅ برای رفع مشکل فایل‌های استاتیک در Production
+CSP_UNSAFE_INLINE = True  # تغییر از DEBUG به True
 
 # ================================================================
 # RATE LIMIT
@@ -543,6 +558,15 @@ SECURITY_HEADERS_EXEMPT = [
     '/api/webhook/',
     '/media/',
 ]
+
+# ================================================================
+# DEBUG TOOLBAR (فقط در حالت DEBUG)
+# ================================================================
+if DEBUG:
+    INTERNAL_IPS = [
+        '127.0.0.1',
+        '::1',
+    ]
 
 # ================================================================
 # END OF SETTINGS
