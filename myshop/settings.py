@@ -1,9 +1,11 @@
 # ================================================================
 # settings.py - فایل کامل تنظیمات پروژه Mine Warts
+# برای دپلوی روی Railway با PostgreSQL
 # ================================================================
 
 import os
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -71,6 +73,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'whitenoise.runserver_nostatic',  # برای سرویس استاتیک فایل‌ها
     'shop.apps.ShopConfig',
     'cart',
     'orders',
@@ -91,6 +94,7 @@ if DEBUG:
 # ================================================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # برای سرویس استاتیک فایل‌ها
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -141,14 +145,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'myshop.wsgi.application'
 
 # ================================================================
-# DATABASE
+# DATABASE - پشتیبانی از PostgreSQL در Railway و SQLite در لوکال
 # ================================================================
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get('DATABASE_URL'):
+    # Railway به‌طور خودکار DATABASE_URL را تنظیم می‌کند
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+    # تنظیمات مخصوص PostgreSQL
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,
+        'options': '-c statement_timeout=30000ms',
+    }
+else:
+    # Fallback به SQLite برای توسعه محلی
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ================================================================
 # AUTH PASSWORD VALIDATORS
@@ -218,19 +238,20 @@ SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = 'require-corp'
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # ================================================================
-# PRODUCTION SECURITY
+# PRODUCTION SECURITY - فعال برای Railway
 # ================================================================
-# if not DEBUG:
-#     SECURE_SSL_REDIRECT = True
-#     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-#     SECURE_HSTS_SECONDS = 31536000
-#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-#     SECURE_HSTS_PRELOAD = True
-#     SESSION_COOKIE_SECURE = True
-#     CSRF_COOKIE_SECURE = True
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000  # 1 سال
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
     
-#     if ALLOWED_HOSTS == ['*'] or not ALLOWED_HOSTS:
-#         raise ValueError("❌ ALLOWED_HOSTS cannot be empty or '*' in production!")
+    # اعتبارسنجی ALLOWED_HOSTS
+    if ALLOWED_HOSTS == ['*'] or not ALLOWED_HOSTS:
+        raise ValueError("❌ ALLOWED_HOSTS cannot be empty or '*' in production!")
 
 # ================================================================
 # INTERNATIONALIZATION
@@ -254,7 +275,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # ================================================================
-# STATIC / MEDIA
+# STATIC / MEDIA - تنظیمات برای Railway
 # ================================================================
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
@@ -262,6 +283,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# استفاده از WhiteNoise برای سرویس فایل‌های استاتیک در Production
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CART_SESSION_ID = 'cart'
@@ -496,103 +521,6 @@ LOGGING = {
         },
     },
 }
-
-# ================================================================
-# DEBUG TOOLBAR - تنظیمات حرفه‌ای
-# ================================================================
-# if DEBUG:
-#     try:
-#         import debug_toolbar
-        
-#         # تنظیمات INTERNAL_IPS برای نمایش تولبار
-#         INTERNAL_IPS = [
-#             '127.0.0.1',
-#             '::1',
-#             '192.168.1.5',
-#             '192.168.1.7',
-#             '0.0.0.0',
-#             'localhost',
-#         ]
-        
-#         # پیکربندی کامل Debug Toolbar
-#         DEBUG_TOOLBAR_CONFIG = {
-#             # نمایش تولبار برای همه درخواست‌ها
-#             'SHOW_TOOLBAR_CALLBACK': lambda request: True,
-            
-#             # نمایش جمع‌شده در ابتدا
-#             'SHOW_COLLAPSED': True,
-            
-#             # فعال‌سازی نمایش استک‌تریس
-#             'ENABLE_STACKTRACES': True,
-            
-#             # هشدار برای کوئری‌های سنگین
-#             'SQL_WARNING_THRESHOLD': 100,
-            
-#             # فعال‌سازی تحلیل کوئری‌ها
-#             'SQL_EXPLAIN_ANALYZE': True,
-            
-#             # غیرفعال‌سازی پنل‌های خاص (برای جلوگیری از تداخل)
-#             'DISABLE_PANELS': {
-#                 'debug_toolbar.panels.profiling.ProfilingPanel',  # ← تداخل با Debugpy
-#             },
-            
-#             # اضافه کردن دکمه‌های سفارشی
-#             'EXTRA_SIGNALS': [],
-            
-#             # تنظیمات ظاهری
-#             'TAG': 'div',
-#             'ENABLE_VIEWS': True,
-#             'MENU_OPEN_ON_LOAD': False,
-#         }
-        
-#         # پنل‌های فعال - بدون Profiling
-#         DEBUG_TOOLBAR_PANELS = [
-#             # تاریخچه درخواست‌ها
-#             'debug_toolbar.panels.history.HistoryPanel',
-            
-#             # نسخه‌های Django و پکیج‌ها
-#             'debug_toolbar.panels.versions.VersionsPanel',
-            
-#             # زمان اجرا و عملکرد
-#             'debug_toolbar.panels.timer.TimerPanel',
-            
-#             # تنظیمات Django
-#             'debug_toolbar.panels.settings.SettingsPanel',
-            
-#             # هدرهای HTTP
-#             'debug_toolbar.panels.headers.HeadersPanel',
-            
-#             # اطلاعات درخواست
-#             'debug_toolbar.panels.request.RequestPanel',
-            
-#             # کوئری‌های SQL
-#             'debug_toolbar.panels.sql.SQLPanel',
-            
-#             # فایل‌های استاتیک
-#             'debug_toolbar.panels.staticfiles.StaticFilesPanel',
-            
-#             # تمپلیت‌ها
-#             'debug_toolbar.panels.templates.TemplatesPanel',
-            
-#             # کش
-#             'debug_toolbar.panels.cache.CachePanel',
-            
-#             # سیگنال‌ها
-#             'debug_toolbar.panels.signals.SignalsPanel',
-            
-#             # لاگ‌ها
-#             'debug_toolbar.panels.logging.LoggingPanel',
-            
-#             # ریدایرکت‌ها
-#             'debug_toolbar.panels.redirects.RedirectsPanel',
-            
-#             # پنل Profiling حذف شد - جلوگیری از تداخل با Debugpy
-#             # 'debug_toolbar.panels.profiling.ProfilingPanel',
-#         ]
-        
-#     except ImportError:
-#         # اگر debug_toolbar نصب نیست، خطا نده
-#         pass
 
 # ================================================================
 # SECURITY EXEMPT PATHS
