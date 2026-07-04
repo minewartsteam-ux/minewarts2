@@ -296,11 +296,18 @@
     }
 
     /* ================================================================
-       QUANTITY CONTROLS
+       QUANTITY CONTROLS - HIDDEN FOR RANK AND KIT
        ================================================================ */
     .quantity-wrapper {
         margin-bottom: 1.2rem;
     }
+    
+    /* Hide quantity controls for ranks and kits */
+    {% if product.product_type == 'rank' or product.product_type == 'kit' %}
+    .quantity-wrapper {
+        display: none !important;
+    }
+    {% endif %}
 
     .quantity-label {
         display: block;
@@ -798,6 +805,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="month_option_id" id="selectedMonthOption" value="">
 
+                    <!-- Quantity wrapper - hidden for ranks and kits -->
                     <div class="quantity-wrapper">
                         <label class="quantity-label" for="id_quantity">تعداد</label>
                         <div class="quantity-controls">
@@ -828,6 +836,7 @@
                 <form action="{% url 'cart:cart_add' product.id %}" method="post" class="add-to-cart-form" id="cartForm">
                     {% csrf_token %}
 
+                    <!-- Quantity wrapper - hidden for ranks and kits -->
                     <div class="quantity-wrapper">
                         <label class="quantity-label" for="id_quantity">تعداد</label>
                         <div class="quantity-controls">
