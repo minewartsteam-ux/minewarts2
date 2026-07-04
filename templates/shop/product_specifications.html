@@ -357,6 +357,13 @@
         gap: 20px;
     }
     
+    /* Hide quantity controls for ranks and kits */
+    {% if product.product_type == 'rank' or product.product_type == 'kit' %}
+    .add-to-cart-theme .quantity-group {
+        display: none !important;
+    }
+    {% endif %}
+    
     .add-to-cart-theme .quantity-group {
         display: flex;
         align-items: center;
@@ -762,11 +769,21 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // اگر محصول رنک یا کیت است، مقدار quantity را 1 قرار بده
+    const productType = "{{ product.product_type }}";
+    if (productType === 'rank' || productType === 'kit') {
+        const input = document.getElementById('id_quantity');
+        if (input) {
+            input.value = 1;
+            input.readOnly = true;
+        }
+    }
+    
     const input = document.getElementById('id_quantity');
     const plusBtn = document.querySelector('.qty-btn.plus[data-input-id="id_quantity"]');
     const minusBtn = document.querySelector('.qty-btn.minus[data-input-id="id_quantity"]');
     
-    if (plusBtn && input) {
+    if (plusBtn && input && productType !== 'rank' && productType !== 'kit') {
         plusBtn.addEventListener('click', function(e) {
             e.preventDefault();
             let value = parseInt(input.value) || 1;
@@ -777,7 +794,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    if (minusBtn && input) {
+    if (minusBtn && input && productType !== 'rank' && productType !== 'kit') {
         minusBtn.addEventListener('click', function(e) {
             e.preventDefault();
             let value = parseInt(input.value) || 1;
