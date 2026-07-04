@@ -1,0 +1,22 @@
+# Shared secret — must match RANK_BRIDGE_HMAC_SECRET on the web shop
+hmac-secret: "CHANGE_ME_USE_A_LONG_RANDOM_SECRET"
+
+shop-id: "minewarts-shop"
+
+# Comma-separated shop VPS egress IPs (also enforce at firewall/nginx)
+allowed-shop-ips:
+  - "127.0.0.1"
+
+# LuckPerms groups the bridge may grant (defense in depth)
+allowed-groups:
+  - "vip"
+  - "vip+"
+  - "mvp"
+
+http:
+  host: "127.0.0.1"
+  port: 8080
+
+security:
+  timestamp-skew-seconds: 300
+  nonce-ttl-seconds: 600

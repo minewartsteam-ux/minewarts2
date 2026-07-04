@@ -1,0 +1,792 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load shop_filters %}
+{% block title %}{{ product.name }} - مشخصات کامل{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================
+       PRODUCT DETAILS - HARMONIZED WITH MAIN THEME
+       ============================================ */
+    
+    .product-detail-wrapper {
+        padding: 20px 0 40px;
+    }
+    
+    /* --- Back Button --- */
+    .back-link-theme {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 8px 18px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.06);
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+    
+    .back-link-theme:hover {
+        background: rgba(76, 175, 80, 0.1);
+        border-color: var(--primary-color);
+        transform: translateX(-5px);
+        color: var(--primary-color);
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.15);
+    }
+    
+    /* --- Main Card --- */
+    .product-main-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 32px 36px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .product-main-card:hover {
+        box-shadow: 0 15px 45px rgba(0,0,0,0.4);
+        border-color: rgba(76, 175, 80, 0.1);
+    }
+    
+    /* --- Header --- */
+    .product-header-theme {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid rgba(76, 175, 80, 0.15);
+    }
+    
+    .product-header-theme .category-badge {
+        display: inline-block;
+        background: rgba(76, 175, 80, 0.12);
+        color: var(--primary-color);
+        padding: 4px 16px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        border: 1px solid rgba(76, 175, 80, 0.1);
+    }
+    
+    .product-header-theme h1 {
+        color: var(--text-light);
+        font-size: clamp(1.8rem, 4vw + 0.8rem, 2.8rem);
+        font-weight: 800;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+    
+    .product-header-theme .product-type-label {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+    
+    /* --- Image --- */
+    .product-image-theme {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+    }
+    
+    .product-image-theme img {
+        width: 100%;
+        max-width: 480px;
+        height: auto;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        border: 2px solid rgba(76, 175, 80, 0.15);
+        transition: all 0.4s ease;
+    }
+    
+    .product-image-theme img:hover {
+        transform: scale(1.01);
+        border-color: var(--primary-color);
+        box-shadow: 0 12px 40px rgba(76, 175, 80, 0.2);
+    }
+    
+    .product-image-theme .image-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(8px);
+        padding: 4px 14px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    
+    /* --- Price Section --- */
+    .price-section-theme {
+        text-align: center;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.08), rgba(3, 169, 244, 0.05));
+        border: 2px solid var(--primary-color);
+        border-radius: 16px;
+        padding: 24px 20px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .price-section-theme:hover {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 30px rgba(76, 175, 80, 0.08);
+    }
+    
+    .price-section-theme .price-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    
+    .price-section-theme .price-value {
+        color: var(--secondary-color);
+        font-size: clamp(2.2rem, 5vw + 0.8rem, 3.5rem);
+        font-weight: 900;
+        letter-spacing: 1px;
+    }
+    
+    .price-section-theme .price-currency {
+        color: var(--text-muted);
+        font-size: 1rem;
+        font-weight: 500;
+        margin-top: 2px;
+    }
+    
+    /* --- Info Grid --- */
+    .info-grid-theme {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+    
+    .info-card-theme {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 14px 16px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .info-card-theme:hover {
+        background: rgba(76, 175, 80, 0.05);
+        border-color: rgba(76, 175, 80, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .info-card-theme .info-icon {
+        font-size: 1.4rem;
+        display: block;
+        margin-bottom: 2px;
+    }
+    
+    .info-card-theme .info-label {
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-card-theme .info-value {
+        color: var(--text-light);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-top: 2px;
+    }
+    
+    /* --- Section Titles --- */
+    .section-title-theme {
+        color: var(--primary-color);
+        font-size: clamp(1.2rem, 2.5vw + 0.5rem, 1.6rem);
+        font-weight: 700;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid rgba(76, 175, 80, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-title-theme .title-icon {
+        font-size: 1.4rem;
+    }
+    
+    /* --- Content Box --- */
+    .content-box-theme {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 22px 26px;
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .content-box-theme::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        border-radius: 4px;
+    }
+    
+    .content-box-theme.spec-border::before {
+        background: linear-gradient(180deg, var(--primary-color), var(--accent-color));
+    }
+    
+    .content-box-theme.desc-border::before {
+        background: linear-gradient(180deg, var(--secondary-color), #FF8A80);
+    }
+    
+    .content-box-theme:hover {
+        border-color: rgba(255,255,255,0.1);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    
+    .content-box-theme .content-text {
+        color: var(--text-secondary);
+        line-height: 1.9;
+        font-size: clamp(0.9rem, 1.2vw + 0.2rem, 1.05rem);
+        white-space: pre-line;
+    }
+    
+    /* --- Kit Table --- */
+    .kit-table-wrapper {
+        overflow-x: auto;
+        margin: 0 -4px;
+    }
+    
+    .kit-table-theme {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 4px;
+        min-width: 500px;
+    }
+    
+    .kit-table-theme thead th {
+        background: rgba(76, 175, 80, 0.08);
+        color: var(--primary-color);
+        padding: 12px 16px;
+        text-align: right;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: 1px solid rgba(76, 175, 80, 0.06);
+    }
+    
+    .kit-table-theme thead th:first-child {
+        border-radius: 10px 0 0 10px;
+    }
+    
+    .kit-table-theme thead th:last-child {
+        border-radius: 0 10px 10px 0;
+    }
+    
+    .kit-table-theme tbody td {
+        background: rgba(255,255,255,0.02);
+        padding: 12px 16px;
+        border: 1px solid rgba(255,255,255,0.03);
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+        transition: all 0.3s ease;
+        vertical-align: middle;
+    }
+    
+    .kit-table-theme tbody tr:hover td {
+        background: rgba(76, 175, 80, 0.04);
+        border-color: rgba(76, 175, 80, 0.08);
+    }
+    
+    .kit-table-theme tbody td:first-child {
+        border-radius: 10px 0 0 10px;
+        font-weight: 600;
+        color: var(--text-light);
+    }
+    
+    .kit-table-theme tbody td:last-child {
+        border-radius: 0 10px 10px 0;
+    }
+    
+    .kit-table-theme .enchant-item {
+        color: #CE93D8;
+        font-size: 0.82rem;
+        padding: 2px 0;
+        display: block;
+        padding-right: 8px;
+    }
+    
+    .kit-table-theme .enchant-item::before {
+        content: '✦ ';
+        color: var(--primary-color);
+        opacity: 0.5;
+    }
+    
+    /* --- Add to Cart --- */
+    .add-to-cart-theme {
+        background: linear-gradient(135deg, rgba(20,20,30,0.9), rgba(30,30,40,0.9));
+        border: 2px solid var(--primary-color);
+        border-radius: 18px;
+        padding: 28px 32px;
+        margin-top: 30px;
+        transition: all 0.3s ease;
+    }
+    
+    .add-to-cart-theme:hover {
+        border-color: var(--accent-color);
+        box-shadow: 0 8px 30px rgba(76, 175, 80, 0.1);
+    }
+    
+    .add-to-cart-theme .cart-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+    }
+    
+    .add-to-cart-theme .quantity-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .add-to-cart-theme .quantity-group label {
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    
+    .add-to-cart-theme .qty-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.04);
+        color: var(--text-light);
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 300;
+    }
+    
+    .add-to-cart-theme .qty-btn:hover {
+        background: rgba(76, 175, 80, 0.12);
+        border-color: var(--primary-color);
+        transform: scale(1.05);
+    }
+    
+    .add-to-cart-theme .qty-btn.minus {
+        background: rgba(244,67,54,0.08);
+        border-color: rgba(244,67,54,0.12);
+        color: #EF5350;
+    }
+    
+    .add-to-cart-theme .qty-btn.minus:hover {
+        background: rgba(244,67,54,0.15);
+        border-color: #EF5350;
+    }
+    
+    .add-to-cart-theme .qty-input {
+        width: 64px;
+        text-align: center;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 10px;
+        padding: 8px 6px;
+        color: var(--text-light);
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .add-to-cart-theme .qty-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.1);
+    }
+    
+    .add-to-cart-theme .btn-add-theme {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 36px;
+        background: linear-gradient(45deg, var(--primary-color), #66BB6A);
+        border: none;
+        border-radius: 50px;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.25);
+    }
+    
+    .add-to-cart-theme .btn-add-theme:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(76, 175, 80, 0.35);
+    }
+    
+    .add-to-cart-theme .btn-add-theme:active {
+        transform: scale(0.97);
+    }
+    
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 768px) {
+        .product-main-card {
+            padding: 20px 16px;
+            border-radius: 16px;
+        }
+        
+        .info-grid-theme {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .info-card-theme {
+            padding: 10px 12px;
+        }
+        
+        .add-to-cart-theme {
+            padding: 20px 16px;
+        }
+        
+        .add-to-cart-theme .cart-row {
+            flex-direction: column;
+            gap: 14px;
+        }
+        
+        .add-to-cart-theme .btn-add-theme {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .content-box-theme {
+            padding: 16px 18px;
+        }
+        
+        .price-section-theme {
+            padding: 18px 16px;
+        }
+        
+        .kit-table-theme {
+            min-width: 380px;
+            font-size: 0.85rem;
+        }
+        
+        .kit-table-theme thead th,
+        .kit-table-theme tbody td {
+            padding: 8px 12px;
+        }
+        
+        .product-image-theme img {
+            max-width: 100%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .product-main-card {
+            padding: 14px 10px;
+            border-radius: 14px;
+        }
+        
+        .info-grid-theme {
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        
+        .info-card-theme {
+            padding: 8px 10px;
+        }
+        
+        .info-card-theme .info-value {
+            font-size: 0.8rem;
+        }
+        
+        .add-to-cart-theme .quantity-group {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .add-to-cart-theme .qty-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 1.1rem;
+        }
+        
+        .add-to-cart-theme .qty-input {
+            width: 56px;
+            padding: 6px 4px;
+            font-size: 1rem;
+        }
+        
+        .section-title-theme {
+            font-size: 1.1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container product-detail-wrapper">
+    <!-- Back Button -->
+    <a href="{% url 'shop:product_list' %}" class="back-link-theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        بازگشت به فروشگاه
+    </a>
+    
+    <!-- Main Card -->
+    <div class="product-main-card">
+        <!-- Header -->
+        <div class="product-header-theme">
+            <span class="category-badge">📦 {{ product.category.name }}</span>
+            <h1>{{ product.name }}</h1>
+            <span class="product-type-label">
+                نوع محصول: {{ product.get_product_type_display }}
+            </span>
+        </div>
+        
+        <!-- Image -->
+        <div class="product-image-theme">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+            <span class="image-badge">
+                {% if product.product_type == 'rank' %}🎖️ رنک
+                {% elif product.product_type == 'kit' %}🧰 کیت
+                {% else %}📦 محصول{% endif %}
+            </span>
+        </div>
+        
+        <!-- Info Grid -->
+        <div class="info-grid-theme">
+            <div class="info-card-theme">
+                <span class="info-icon">🆔</span>
+                <span class="info-label">شناسه</span>
+                <span class="info-value">#{{ product.id|stringformat:"06d" }}</span>
+            </div>
+            <div class="info-card-theme">
+                <span class="info-icon">📁</span>
+                <span class="info-label">دسته</span>
+                <span class="info-value">{{ product.category.name }}</span>
+            </div>
+            <div class="info-card-theme">
+                <span class="info-icon">🏷️</span>
+                <span class="info-label">نوع</span>
+                <span class="info-value">{{ product.get_product_type_display }}</span>
+            </div>
+            <div class="info-card-theme">
+                <span class="info-icon">📅</span>
+                <span class="info-label">ثبت</span>
+                <span class="info-value">{{ product.created_at|date:"Y/m/d" }}</span>
+            </div>
+        </div>
+        
+        <!-- Price -->
+        <div class="price-section-theme">
+            <div class="price-label">💰 قیمت محصول</div>
+            <div class="price-value">{{ product.wart_coin_price|floatformat:2|intcomma }}</div>
+            <div class="price-currency">Wart Coin</div>
+        </div>
+        
+        <!-- ============================================
+             RANK TYPE
+             ============================================ -->
+        {% if product.product_type == 'rank' %}
+            {% if product.specifications %}
+            <div class="section-title-theme">
+                <span class="title-icon">🎖️</span>
+                مشخصات رنک
+            </div>
+            <div class="content-box-theme spec-border">
+                <div class="content-text">
+                    {{ product.specifications|parse_rank_specifications }}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if product.description %}
+            <div class="section-title-theme">
+                <span class="title-icon">📝</span>
+                توضیحات رنک
+            </div>
+            <div class="content-box-theme desc-border">
+                <div class="content-text">{{ product.description }}</div>
+            </div>
+            {% endif %}
+            
+        <!-- ============================================
+             KIT TYPE
+             ============================================ -->
+        {% elif product.product_type == 'kit' %}
+            {% if product.specifications %}
+            <div class="section-title-theme">
+                <span class="title-icon">🧰</span>
+                توضیحات کلی کیت
+            </div>
+            <div class="content-box-theme spec-border">
+                <div class="content-text">{{ product.specifications }}</div>
+            </div>
+            {% endif %}
+            
+            {% if product.kit_items.all %}
+            <div class="section-title-theme">
+                <span class="title-icon">📋</span>
+                آیتم‌ها و قابلیت‌های کیت
+            </div>
+            <div class="content-box-theme" style="padding: 0; background: transparent; border: none;">
+                <div class="kit-table-wrapper">
+                    <table class="kit-table-theme">
+                        <thead>
+                            <tr>
+                                <th style="width: 35%;">قابلیت / آیتم</th>
+                                <th style="width: 40%;">توضیحات</th>
+                                <th style="width: 25%;">جزئیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for kit_item in product.kit_items.all %}
+                            <tr>
+                                <td>
+                                    <strong>{{ kit_item.title }}</strong>
+                                    {% if kit_item.enchantments %}
+                                    <div style="margin-top: 4px;">
+                                        {% for enchant in kit_item.enchantments|split_enchantments %}
+                                        <span class="enchant-item">{{ enchant }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if kit_item.description %}
+                                        {{ kit_item.description }}
+                                    {% else %}
+                                        <span style="color: var(--text-muted);">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="
+                                        display: inline-block;
+                                        background: rgba(76, 175, 80, 0.08);
+                                        color: var(--primary-color);
+                                        padding: 2px 12px;
+                                        border-radius: 50px;
+                                        font-size: 0.75rem;
+                                        font-weight: 500;
+                                    ">
+                                        آیتم
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="content-box-theme">
+                <div class="content-text" style="color: var(--text-muted); text-align: center;">
+                    برای این کیت هنوز آیتمی ثبت نشده است.
+                </div>
+            </div>
+            {% endif %}
+            
+        <!-- ============================================
+             DEFAULT TYPE
+             ============================================ -->
+        {% else %}
+            {% if product.specifications %}
+            <div class="section-title-theme">
+                <span class="title-icon">📋</span>
+                مشخصات کامل محصول
+            </div>
+            <div class="content-box-theme spec-border">
+                <div class="content-text">{{ product.specifications }}</div>
+            </div>
+            {% endif %}
+            
+            {% if product.description %}
+            <div class="section-title-theme">
+                <span class="title-icon">📝</span>
+                توضیحات محصول
+            </div>
+            <div class="content-box-theme desc-border">
+                <div class="content-text">{{ product.description }}</div>
+            </div>
+            {% endif %}
+        {% endif %}
+        
+        <!-- ============================================
+             ADD TO CART
+             ============================================ -->
+        <div class="add-to-cart-theme">
+            <form action="{% url 'cart:cart_add' product.id %}" method="post" id="cart-form-specifications">
+                {% csrf_token %}
+                <div class="cart-row">
+                    <div class="quantity-group">
+                        <label for="id_quantity">تعداد:</label>
+                        <button type="button" class="qty-btn minus" data-input-id="id_quantity">−</button>
+                        {{ cart_add_product_form.quantity }}
+                        <button type="button" class="qty-btn plus" data-input-id="id_quantity">+</button>
+                    </div>
+                    {{ cart_add_product_form.override }}
+                    <button type="submit" class="btn-add-theme">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 01-8 0"/>
+                        </svg>
+                        افزودن به سبد خرید
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('id_quantity');
+    const plusBtn = document.querySelector('.qty-btn.plus[data-input-id="id_quantity"]');
+    const minusBtn = document.querySelector('.qty-btn.minus[data-input-id="id_quantity"]');
+    
+    if (plusBtn && input) {
+        plusBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            let value = parseInt(input.value) || 1;
+            if (value < 20) {
+                value++;
+                input.value = value;
+            }
+        });
+    }
+    
+    if (minusBtn && input) {
+        minusBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            let value = parseInt(input.value) || 1;
+            if (value > 1) {
+                value--;
+                input.value = value;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

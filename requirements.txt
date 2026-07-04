@@ -1,0 +1,10 @@
+Django
+Pillow
+django-jazzmin
+requests
+whitenoise
+mcrcon
+six
+django-debug-toolbar
+mcstatus
+gunicorn

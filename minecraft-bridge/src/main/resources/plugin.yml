@@ -1,0 +1,7 @@
+name: RankBridge
+version: 1.0.0
+main: ir.minewarts.rankbridge.RankBridgePlugin
+api-version: '1.20'
+depend: [LuckPerms]
+author: MineWarts
+description: Secure HMAC-signed rank provisioning API for web shop
