@@ -8,3 +8,4 @@ six
 django-debug-toolbar
 mcstatus
 gunicorn
+dj-database-url==2.1.0
