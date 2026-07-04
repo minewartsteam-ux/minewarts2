@@ -270,6 +270,21 @@
         }
 
         /* ================================================================
+           QUANTITY CONTROLS - HIDDEN FOR RANK AND KIT IN LIST
+           ================================================================ */
+        .product-card .quantity-wrapper {
+            display: none !important;
+        }
+        
+        .product-card .quantity-controls {
+            display: none !important;
+        }
+        
+        .product-card input[name="quantity"] {
+            display: none !important;
+        }
+
+        /* ================================================================
            PRODUCT FOOTER
            ================================================================ */
         .product-card .card-footer {
@@ -779,42 +794,13 @@
             });
         });
         
-        // ============================================
-        // مدیریت دکمه‌های + و -
-        // ============================================
-        document.querySelectorAll('.quantity-plus').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const productId = this.getAttribute('data-product-id');
-                const input = document.getElementById('id_quantity_' + productId);
-                let value = parseInt(input.value) || 1;
-                if (value < 20) {
-                    value++;
-                    input.value = value;
-                }
-            });
-        });
-        
-        document.querySelectorAll('.quantity-minus').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const productId = this.getAttribute('data-product-id');
-                const input = document.getElementById('id_quantity_' + productId);
-                let value = parseInt(input.value) || 1;
-                if (value > 1) {
-                    value--;
-                    input.value = value;
-                }
-            });
-        });
-        
-        // اطمینان از submit شدن فرم
+        // اطمینان از submit شدن فرم - بدون دکمه های + و -
         document.querySelectorAll('.add-to-cart-form').forEach(function(form) {
             form.addEventListener('submit', function(e) {
+                // مقدار quantity را 1 قرار می‌دهیم (برای رنک و کیت)
                 const quantityInput = form.querySelector('input[name="quantity"]');
                 if (quantityInput) {
-                    let value = parseInt(quantityInput.value) || 1;
-                    if (value < 1) value = 1;
-                    if (value > 20) value = 20;
-                    quantityInput.value = value;
+                    quantityInput.value = 1;
                 }
                 return true;
             });
